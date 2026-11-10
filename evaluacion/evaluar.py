@@ -119,6 +119,12 @@ def main():
     with open(args.preguntas, encoding="utf-8") as archivo:
         conjunto = json.load(archivo)
 
+    if not os.path.exists(conjunto["documento"]):
+        raise SystemExit(
+            f"No se encontró {conjunto['documento']}. "
+            "Copia el PDF de prueba en la carpeta data/ y vuelve a ejecutar."
+        )
+
     print(f"Preparando documento: {conjunto['documento']}")
     paginas = extraer_paginas_pdf(conjunto["documento"])
     chunks = generar_embeddings_chunks(crear_chunks(paginas))
