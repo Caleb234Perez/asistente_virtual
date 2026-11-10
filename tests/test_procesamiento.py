@@ -1,6 +1,7 @@
 """Pruebas del procesamiento documental: lectura de PDF y fragmentación."""
 
 import io
+import os
 
 import pytest
 from pypdf import PdfWriter
@@ -10,10 +11,19 @@ from src.text_processor import crear_chunks
 from tests.conftest import RUTA_PDF_PRUEBA
 
 
+# El PDF de prueba no se sube al repositorio (ver .gitignore). Si no está
+# en data/, las pruebas que lo usan se omiten en lugar de fallar.
+requiere_pdf = pytest.mark.skipif(
+    not os.path.exists(RUTA_PDF_PRUEBA),
+    reason="Falta data/documento_prueba.pdf"
+)
+
+
 # ---------------------------------------------------------
 # Lectura de PDF
 # ---------------------------------------------------------
 
+@requiere_pdf
 def test_extrae_las_tres_paginas_del_documento_de_prueba():
     paginas = extraer_paginas_pdf(RUTA_PDF_PRUEBA)
 
@@ -21,6 +31,7 @@ def test_extrae_las_tres_paginas_del_documento_de_prueba():
     assert all(p["texto"] for p in paginas)
 
 
+@requiere_pdf
 def test_el_texto_extraido_contiene_contenido_esperado():
     paginas = extraer_paginas_pdf(RUTA_PDF_PRUEBA)
 
@@ -89,6 +100,7 @@ def test_fragmentos_respetan_tamano_y_solapamiento():
     assert chunks[0]["texto"][-200:] == chunks[1]["texto"][:200]
 
 
+@requiere_pdf
 def test_documento_de_prueba_genera_trece_fragmentos():
     # Coincide con lo registrado en el manual técnico (sección 9.1).
     paginas = extraer_paginas_pdf(RUTA_PDF_PRUEBA)
