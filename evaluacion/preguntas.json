@@ -1,0 +1,24 @@
+{
+  "documento": "data/documento_prueba.pdf",
+  "descripcion": "Conjunto de preguntas para evaluar la recuperación y la generación. 'paginas_esperadas' lista las páginas que contienen la respuesta; una lista vacía indica que el documento NO contiene la respuesta y el asistente debe rechazarla.",
+  "preguntas": [
+    {"id": "P01", "tipo": "directa", "pregunta": "¿Quiénes son los autores del artículo?", "paginas_esperadas": [1]},
+    {"id": "P02", "tipo": "directa", "pregunta": "¿Qué es Socratic Playground for Learning?", "paginas_esperadas": [1, 2]},
+    {"id": "P03", "tipo": "directa", "pregunta": "¿Cuántos participantes tuvo el estudio piloto?", "paginas_esperadas": [1, 2]},
+    {"id": "P04", "tipo": "directa", "pregunta": "¿Cuánto duró la fase de aprendizaje del estudio?", "paginas_esperadas": [1, 2]},
+    {"id": "P05", "tipo": "directa", "pregunta": "¿Qué escala se utilizó para medir la aceptación de la tecnología?", "paginas_esperadas": [2]},
+    {"id": "P06", "tipo": "directa", "pregunta": "¿Cuál fue la ganancia de aprendizaje proporcional?", "paginas_esperadas": [2]},
+    {"id": "P07", "tipo": "directa", "pregunta": "¿Cuántos minutos en promedio pasaron los participantes aprendiendo en SPL?", "paginas_esperadas": [2]},
+    {"id": "P08", "tipo": "directa", "pregunta": "¿Qué edad tenían los participantes?", "paginas_esperadas": [2]},
+    {"id": "P09", "tipo": "sintesis", "pregunta": "¿Cuáles son los principales retos de los sistemas tutores basados en LLM?", "paginas_esperadas": [3]},
+    {"id": "P10", "tipo": "sintesis", "pregunta": "¿Qué oportunidades ofrecen los LLM-ITS para la educación?", "paginas_esperadas": [3]},
+    {"id": "P11", "tipo": "sintesis", "pregunta": "¿Qué componentes tiene SPL y qué hace cada uno?", "paginas_esperadas": [1, 2]},
+    {"id": "P12", "tipo": "sintesis", "pregunta": "¿Qué factores se asociaron con la intención de usar SPL?", "paginas_esperadas": [2, 3]},
+    {"id": "P13", "tipo": "multilingue", "pregunta": "What language model powers SPL?", "paginas_esperadas": [1, 2]},
+    {"id": "P14", "tipo": "multilingue", "pregunta": "How many items did the UTAUT2 scale have?", "paginas_esperadas": [2]},
+    {"id": "P15", "tipo": "fuera_de_contenido", "pregunta": "¿Cuál es la capital de Francia?", "paginas_esperadas": []},
+    {"id": "P16", "tipo": "fuera_de_contenido", "pregunta": "¿Cuál fue el presupuesto del proyecto?", "paginas_esperadas": []},
+    {"id": "P17", "tipo": "fuera_de_contenido", "pregunta": "¿Quién ganó la Copa Mundial de Futbol de 2022?", "paginas_esperadas": []},
+    {"id": "P18", "tipo": "fuera_de_contenido", "pregunta": "¿Cuánto cuesta la suscripción mensual a SPL?", "paginas_esperadas": []}
+  ]
+}

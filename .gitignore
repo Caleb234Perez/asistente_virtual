@@ -1,0 +1,20 @@
+# Entorno virtual
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Variables de entorno / secretos
+.env
+
+# Editor y sistema
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+
+# Documentos de prueba (no se suben)
+data/*.pdf
