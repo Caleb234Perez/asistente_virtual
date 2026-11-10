@@ -36,6 +36,27 @@ def normalizar_paginas(fuentes):
     return paginas
 
 
+def determinar_si_respondio(datos, respuesta):
+    """Indica si el modelo respondió o rechazó la pregunta.
+
+    Se usa el campo "encontrada" del JSON cuando el modelo lo incluye.
+    Si no, se revisa si la respuesta comienza con el mensaje de rechazo:
+    el modelo a veces lo modifica ("...para determinar el costo..."),
+    por lo que no basta con una comparación exacta.
+    """
+
+    texto_de_rechazo = respuesta.strip().lower().startswith(
+        "no encontré información suficiente"
+    )
+
+    encontrada = datos.get("encontrada")
+
+    if isinstance(encontrada, bool):
+        return encontrada and not texto_de_rechazo
+
+    return not texto_de_rechazo
+
+
 def responder_pregunta(pregunta, chunks, top_k=3):
 
     resultados = buscar_fragmentos(
@@ -62,6 +83,7 @@ Utiliza EXCLUSIVAMENTE el contexto proporcionado para responder.
 Debes devolver un objeto JSON con esta estructura exacta:
 
 {{
+    "encontrada": true,
     "respuesta": "texto de la respuesta",
     "fuentes": [1, 2]
 }}
@@ -76,9 +98,14 @@ REGLAS:
    directamente la respuesta.
 6. No incluyas una página solamente porque tenga información
    relacionada con el tema.
-7. Si no existe información suficiente, devuelve:
+7. Si respondes la pregunta, "fuentes" debe contener al menos
+   una página.
+8. La lista de referencias bibliográficas solo indica obras
+   citadas: sus autores NO son los autores del documento.
+9. Si no existe información suficiente, devuelve:
 
 {{
+    "encontrada": false,
     "respuesta": "{MENSAJE_SIN_INFORMACION}",
     "fuentes": []
 }}
@@ -115,16 +142,22 @@ PREGUNTA:
             ):
                 fuentes.append(resultado)
 
-    tiene_respuesta = (
-        respuesta.strip().lower()
-        != MENSAJE_SIN_INFORMACION.lower()
-    )
+    tiene_respuesta = determinar_si_respondio(datos, respuesta)
+
+    fuentes_inferidas = False
 
     if not tiene_respuesta:
         fuentes = []
 
+    elif not fuentes and resultados:
+        # El modelo respondió pero no citó páginas válidas: se usa la
+        # página del fragmento más similar a la pregunta.
+        fuentes = [resultados[0]]
+        fuentes_inferidas = True
+
     return {
         "respuesta": respuesta,
         "fuentes": fuentes,
-        "tiene_respuesta": tiene_respuesta
+        "tiene_respuesta": tiene_respuesta,
+        "fuentes_inferidas": fuentes_inferidas
     }

@@ -136,6 +136,62 @@ def test_respuesta_vacia_se_trata_como_sin_informacion(
     assert not resultado["tiene_respuesta"]
 
 
+def test_rechazo_con_mensaje_modificado_se_detecta(
+    monkeypatch, busqueda_simulada
+):
+    # Caso P18 de la evaluación: el modelo cambió el final del mensaje.
+    simular_modelo(monkeypatch, {
+        "respuesta": "No encontré información suficiente en los "
+                     "documentos proporcionados para determinar el costo.",
+        "fuentes": []
+    })
+
+    resultado = responder_pregunta("¿Cuánto cuesta SPL?", [])
+
+    assert not resultado["tiene_respuesta"]
+
+
+def test_campo_encontrada_falso_indica_rechazo(
+    monkeypatch, busqueda_simulada
+):
+    simular_modelo(monkeypatch, {
+        "encontrada": False,
+        "respuesta": "El documento no menciona ese dato.",
+        "fuentes": [2]
+    })
+
+    resultado = responder_pregunta("pregunta", [])
+
+    assert not resultado["tiene_respuesta"]
+    assert resultado["fuentes"] == []
+
+
+def test_respuesta_sin_fuentes_usa_el_fragmento_mas_similar(
+    monkeypatch, busqueda_simulada
+):
+    # Casos P08 y P14 de la evaluación: respuesta correcta sin páginas.
+    simular_modelo(monkeypatch, {
+        "encontrada": True,
+        "respuesta": "Tenían en promedio 20.43 años.",
+        "fuentes": []
+    })
+
+    resultado = responder_pregunta("¿Qué edad tenían?", [])
+
+    assert [f["pagina"] for f in resultado["fuentes"]] == [2]
+    assert resultado["fuentes_inferidas"]
+
+
+def test_fuentes_citadas_no_se_marcan_como_inferidas(
+    monkeypatch, busqueda_simulada
+):
+    simular_modelo(monkeypatch, {"respuesta": "Fueron 30.", "fuentes": [1]})
+
+    resultado = responder_pregunta("¿Cuántos participantes?", [])
+
+    assert not resultado["fuentes_inferidas"]
+
+
 def test_prompt_incluye_contexto_y_pregunta(monkeypatch, busqueda_simulada):
     prompts = []
 

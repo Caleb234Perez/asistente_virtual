@@ -95,6 +95,7 @@ def evaluar_generacion(pregunta, chunks):
     return {
         "respondio": int(resultado["tiene_respuesta"]),
         "paginas_citadas": sorted(citadas),
+        "fuentes_inferidas": int(resultado.get("fuentes_inferidas", False)),
         "comportamiento_correcto": int(correcto),
         "segundos": round(segundos, 1),
         "respuesta": resultado["respuesta"].replace("\n", " "),
