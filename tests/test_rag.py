@@ -192,6 +192,16 @@ def test_fuentes_citadas_no_se_marcan_como_inferidas(
     assert not resultado["fuentes_inferidas"]
 
 
+def test_fuentes_incluyen_fragmentos_de_su_pagina(
+    monkeypatch, busqueda_simulada
+):
+    simular_modelo(monkeypatch, {"respuesta": "Fueron 30.", "fuentes": [2]})
+
+    resultado = responder_pregunta("¿Cuántos participantes?", [])
+
+    assert resultado["fuentes"][0]["fragmentos"] == ["30 participantes"]
+
+
 def test_prompt_incluye_contexto_y_pregunta(monkeypatch, busqueda_simulada):
     prompts = []
 

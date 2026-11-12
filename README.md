@@ -27,6 +27,14 @@ ollama pull mistral:7b
 
 El PDF de prueba no se incluye en el repositorio. Para `main.py`, las pruebas que lo usan y la evaluación, colócalo en `data/documento_prueba.pdf`.
 
+## Funciones principales
+
+- Preguntas en lenguaje natural (español o inglés) sobre un PDF.
+- Respuestas con las páginas que las respaldan.
+- **Ver en el documento:** cada fuente muestra la página del PDF con el párrafo usado para responder resaltado en amarillo.
+- **Visor del documento:** permite hojear el PDF mientras se hacen preguntas.
+- Rechazo de preguntas cuya respuesta no está en el documento.
+
 ## Ejecución
 
 Interfaz web:

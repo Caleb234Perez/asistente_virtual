@@ -36,6 +36,26 @@ def normalizar_paginas(fuentes):
     return paginas
 
 
+def agregar_fragmentos_por_pagina(fuentes, resultados):
+    """Agrega a cada fuente el texto de todos los fragmentos recuperados
+    de su página, en orden de similitud.
+
+    Sirve para resaltar en el PDF todo lo que el modelo leyó de esa página.
+    """
+
+    return [
+        {
+            **fuente,
+            "fragmentos": [
+                resultado["texto"]
+                for resultado in resultados
+                if resultado["pagina"] == fuente["pagina"]
+            ]
+        }
+        for fuente in fuentes
+    ]
+
+
 def determinar_si_respondio(datos, respuesta):
     """Indica si el modelo respondió o rechazó la pregunta.
 
@@ -157,7 +177,7 @@ PREGUNTA:
 
     return {
         "respuesta": respuesta,
-        "fuentes": fuentes,
+        "fuentes": agregar_fragmentos_por_pagina(fuentes, resultados),
         "tiene_respuesta": tiene_respuesta,
         "fuentes_inferidas": fuentes_inferidas
     }
