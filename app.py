@@ -5,6 +5,12 @@ from src.text_processor import crear_chunks
 from src.embeddings import generar_embeddings_chunks
 from src.rag import responder_pregunta
 from src.llm import ErrorModelo
+from src.pdf_viewer import renderizar_pagina, contar_paginas
+
+
+@st.cache_data(show_spinner=False, max_entries=64)
+def pagina_resaltada(pdf_bytes, numero_pagina, textos=()):
+    return renderizar_pagina(pdf_bytes, numero_pagina, textos)
 
 
 def limpiar_documento():
@@ -13,21 +19,68 @@ def limpiar_documento():
     st.session_state.numero_paginas = 0
     st.session_state.numero_fragmentos = 0
     st.session_state.mensajes = []
+    st.session_state.pdf_bytes = None
+    st.session_state.total_paginas_pdf = 0
 
 
-def mostrar_fuentes(paginas):
+def mostrar_en_documento(pagina, fragmentos):
+    """Muestra la página citada con los fragmentos usados resaltados."""
+
+    if not st.session_state.get("pdf_bytes"):
+        return
+
+    with st.expander(f"🔎 Ver página {pagina} en el documento"):
+
+        with st.spinner("Cargando página..."):
+            vista = pagina_resaltada(
+                st.session_state.pdf_bytes,
+                pagina,
+                tuple(fragmentos)
+            )
+
+        if vista["encontrado"]:
+            pestana_parrafo, pestana_pagina = st.tabs(
+                ["Párrafo resaltado", "Página completa"]
+            )
+
+            with pestana_parrafo:
+                st.image(vista["recorte"])
+                st.caption(
+                    "En amarillo, el texto que el asistente leyó "
+                    "para responder."
+                )
+
+            with pestana_pagina:
+                st.image(vista["pagina"])
+
+        else:
+            st.image(vista["pagina"])
+            st.caption(
+                "No fue posible ubicar el texto exacto en la página; "
+                "se muestra la página completa."
+            )
+
+
+def mostrar_fuentes(fuentes):
     st.caption("Fuentes")
 
-    for pagina in paginas:
+    for fuente in fuentes:
+
+        # Mensajes antiguos guardaban solo el número de página.
+        if isinstance(fuente, int):
+            fuente = {"pagina": fuente, "fragmentos": []}
+
         st.markdown(
             f"""
             <div class="source-card">
             📄 {st.session_state.nombre_documento}
-            · Página {pagina}
+            · Página {fuente["pagina"]}
             </div>
             """,
             unsafe_allow_html=True
         )
+
+        mostrar_en_documento(fuente["pagina"], fuente["fragmentos"])
 
 
 # ---------------------------------------------------------
@@ -108,6 +161,12 @@ if "mensajes" not in st.session_state:
 
 if "archivo_actual" not in st.session_state:
     st.session_state.archivo_actual = None
+
+if "pdf_bytes" not in st.session_state:
+    st.session_state.pdf_bytes = None
+
+if "total_paginas_pdf" not in st.session_state:
+    st.session_state.total_paginas_pdf = 0
 
 
 # ---------------------------------------------------------
@@ -222,6 +281,10 @@ with st.sidebar:
                     st.session_state.numero_paginas = len(paginas)
                     st.session_state.numero_fragmentos = len(chunks)
                     st.session_state.mensajes = []
+                    st.session_state.pdf_bytes = archivo.getvalue()
+                    st.session_state.total_paginas_pdf = contar_paginas(
+                        st.session_state.pdf_bytes
+                    )
 
                     st.success("Documento listo.")
 
@@ -307,6 +370,34 @@ st.caption(
 
 
 # ---------------------------------------------------------
+# VISOR DEL DOCUMENTO
+# ---------------------------------------------------------
+
+if st.session_state.pdf_bytes:
+
+    with st.expander("📄 Ver documento"):
+
+        total = st.session_state.total_paginas_pdf
+
+        numero = st.number_input(
+            f"Página (1 a {total})",
+            min_value=1,
+            max_value=total,
+            value=1,
+            step=1,
+            key="visor_pagina"
+        )
+
+        with st.spinner("Cargando página..."):
+            vista = pagina_resaltada(
+                st.session_state.pdf_bytes,
+                int(numero)
+            )
+
+        st.image(vista["pagina"])
+
+
+# ---------------------------------------------------------
 # HISTORIAL
 # ---------------------------------------------------------
 
@@ -357,7 +448,7 @@ if pregunta:
     with st.chat_message("assistant"):
 
         resultado = None
-        paginas_fuente = []
+        fuentes_mostradas = []
 
         with st.spinner("Analizando el documento..."):
 
@@ -388,13 +479,19 @@ if pregunta:
 
             for fuente in resultado["fuentes"]:
 
-                pagina = fuente["pagina"]
+                if not any(
+                    f["pagina"] == fuente["pagina"]
+                    for f in fuentes_mostradas
+                ):
+                    fuentes_mostradas.append({
+                        "pagina": fuente["pagina"],
+                        "fragmentos": fuente.get(
+                            "fragmentos", [fuente["texto"]]
+                        )
+                    })
 
-                if pagina not in paginas_fuente:
-                    paginas_fuente.append(pagina)
-
-            if paginas_fuente:
-                mostrar_fuentes(paginas_fuente)
+            if fuentes_mostradas:
+                mostrar_fuentes(fuentes_mostradas)
             else:
                 st.info(
                     "No se identificaron fuentes suficientes "
@@ -406,6 +503,6 @@ if pregunta:
                 {
                     "rol": "assistant",
                     "contenido": resultado["respuesta"],
-                    "fuentes": paginas_fuente
+                    "fuentes": fuentes_mostradas
                 }
             )
